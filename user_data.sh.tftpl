@@ -1,0 +1,43 @@
+#!/bin/bash
+
+yum update -y
+yum install -y wget gcc
+
+#
+# Tracing tools
+#
+amazon-linux-extras install -y BCC
+yum install -y bpftrace perf
+
+#
+# Rust
+#
+curl https://sh.rustup.rs -sSf > RUSTUP.sh
+sh RUSTUP.sh -y
+rm RUSTUP.sh
+
+#
+# Go
+#
+wget https://go.dev/dl/go1.19.2.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.19.2.linux-amd64.tar.gz
+rm go1.19*
+echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.bash_profile
+
+#
+# Java
+#
+yum install -y java-17-amazon-corretto-headless
+wget https://download.ej-technologies.com/jprofiler/jprofiler_linux_13_0_3.rpm && yum localinstall -y jprofiler_linux_13_0_3.rpm && rm jprofiler*
+
+#
+# Create user for performance testing.
+#
+useradd -m -s /bin/bash -G wheel ${username}
+cp -r ~/.{cargo,rustup,bash_profile,profile} /home/${username}/
+
+mkdir /home/${username}/.ssh
+cat << EOF > /home/${username}/.ssh/authorized_keys
+${ssh_public_key}
+EOF
+chown -R ${username}:wheel /home/${username}/
